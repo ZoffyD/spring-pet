@@ -8,6 +8,44 @@
 1. Mention your previous group.
 1. Other related info (if any)
 
+<table>
+  <tr>
+    <td><b>No.</b></td>
+    <td><b>Photo</b></td>
+    <td><b>Name</b></td>
+    <td><b>Matric Number</b></td>
+    <td><b>Phone Number</b></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td><img src= width="160" height="240"></td>
+    <td>Khor Ken Joo</td>
+    <td>299843</td>
+    <td>+6010-830 8896</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><img src= width="160" height="240"></td>
+    <td>Andrew Looi Szu Kit</td>
+    <td>299412</td>
+    <td>+6017-244 6292</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><img src="https://github.com/user-attachments/assets/ee275e4b-1991-4c62-a6b0-6a8cd94ddea0"
+ width="160" height="240"></td>
+    <td>Eric Lee Shen Yi</td>
+    <td>299300</td>
+    <td>+6011-3671 6188</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td><img src= width="160" height="240"></td>
+    <td>Tan Hou Ren</td>
+    <td>301235</td>
+    <td>+6011-1322 7627</td>
+  </tr>
+</table>
 ## Title 
 
 ## Introduction
