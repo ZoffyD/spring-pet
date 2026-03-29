@@ -42,7 +42,7 @@
   </tr>
   <tr>
     <td>4</td>
-    <td><img src=![picture](https://github.com/user-attachments/assets/279c39d7-d6ac-42e5-bcb7-582b63d9e43d)
+    <td><img src="https://github.com/user-attachments/assets/279c39d7-d6ac-42e5-bcb7-582b63d9e43d"
  width="160" height="240"></td>
     <td>Tan Hou Ren</td>
     <td>301235</td>
