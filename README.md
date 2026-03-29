@@ -18,14 +18,16 @@
   </tr>
   <tr>
     <td>1</td>
-    <td><img src= width="160" height="240"></td>
+    <td><img src="https://github.com/user-attachments/assets/a9bec08d-a70e-41f7-ab77-14f7668bb57e"
+ width="160" height="240"></td>
     <td>Khor Ken Joo</td>
     <td>299843</td>
     <td>+6010-830 8896</td>
   </tr>
   <tr>
     <td>2</td>
-    <td><img src= width="160" height="240"></td>
+    <td><img src="https://github.com/user-attachments/assets/2beb78c3-c0e5-4620-b0fc-1d5274f15dac"
+ width="160" height="240"></td>
     <td>Andrew Looi Szu Kit</td>
     <td>299412</td>
     <td>+6017-244 6292</td>
