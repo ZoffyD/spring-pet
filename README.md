@@ -34,7 +34,7 @@
   </tr>
   <tr>
     <td>3</td>
-    <td><img src="https://github.com/user-attachments/assets/ee275e4b-1991-4c62-a6b0-6a8cd94ddea0"
+    <td><img src="https://github.com/user-attachments/assets/72cd0f3f-be62-42ca-9b8b-b2d703635726"
  width="160" height="240"></td>
     <td>Eric Lee Shen Yi</td>
     <td>299300</td>
