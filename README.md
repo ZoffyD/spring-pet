@@ -18,7 +18,7 @@
   </tr>
   <tr>
     <td>1</td>
-    <td><img src="https://github.com/user-attachments/assets/a9bec08d-a70e-41f7-ab77-14f7668bb57e"
+    <td><img src="https://github.com/user-attachments/assets/9d3e6310-d902-41de-9b8e-ab46c8745712"
  width="160" height="240"></td>
     <td>Khor Ken Joo</td>
     <td>299843</td>
