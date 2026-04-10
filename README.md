@@ -100,12 +100,22 @@ Here is how this methodology translates into the actual project workflow:
 
 ### Quality Characteristic Mapping
 Following the paper's approach, each pipeline stage is explicitly mapped to the quality characteristics it verifies:
-Pipeline StageQuality CharacteristicSub-characteristicsCoding RulesMaintainabilityModularity, Modifiability, TestabilityStatic AnalysisReliability, MaintainabilityMaturity, AnalysabilityUnit TestFunctional SuitabilityCompleteness, CorrectnessAPI Test (JMeter)Performance EfficiencyTime Behaviour, Resource UtilizationE2E Test (Cypress)Functional Suitability, UsabilityAppropriateness, OperabilityPipeline Processing TimePerformance EfficiencyTime Behaviour
-Before/After Comparison Design
+
+| Pipeline Stage | Quality Characteristic | Sub-characteristics |
+|---|---|---|
+| Coding Rules | Maintainability | Modularity, Modifiability, Testability |
+| Static Analysis | Reliability, Maintainability | Maturity, Analysability |
+| Unit Test | Functional Suitability | Completeness, Correctness |
+| API Test (JMeter) | Performance Efficiency | Time Behaviour, Resource Utilization |
+| E2E Test (Cypress) | Functional Suitability, Usability | Appropriateness, Operability |
+| Pipeline Processing Time | Performance Efficiency | Time Behaviour |
+
+### Before/After Comparison Design
+
 To replicate the paper's experimental approach:
 
-Phase 1 (Without Quality KPIs): Several sprints is run using a standard approach — tests exist in the pipeline, but there is no formal mapping to quality characteristics and no quality-based KPIs guiding our work.
-Phase 2 (With Quality KPIs): Quality characteristic mapping is introduce, declare quality goals in the project plan, and use quality characteristics as KPIs to guide each sprint. The outcomes is compare for both phases.
+- **Phase 1 (Without Quality KPIs):** Several sprints is run using a standard approach — tests exist in the pipeline, but there is no formal mapping to quality characteristics and no quality-based KPIs guiding our work.
+- **Phase 2 (With Quality KPIs):** Quality characteristic mapping is introduce, declare quality goals in the project plan, and use quality characteristics as KPIs to guide each sprint. The outcomes is compare for both phases.
 
 ### 4. Data Collection
 To validate our pipeline and compare our results with the paper's findings, we collect the following data across both phases:
