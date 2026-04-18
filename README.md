@@ -26,7 +26,7 @@
   </tr>
   <tr>
     <td>2</td>
-    <td><img src="https://github.com/user-attachments/assets/2beb78c3-c0e5-4620-b0fc-1d5274f15dac"
+    <td><img src="https://github.com/user-attachments/assets/4d119459-2f32-448f-8e32-0a4d11b102c4"
  width="160" height="240"></td>
     <td>Andrew Looi Szu Kit</td>
     <td>299412</td>
