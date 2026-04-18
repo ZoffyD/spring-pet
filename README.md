@@ -62,7 +62,7 @@ The paper follows an experimental methodology. The researchers ran two separate 
 
 * Project 1 (Baseline): A standard Agile project where each sprint tried to cover all quality characteristics at once, but without any formal mapping rules or quality-based KPIs. This project ended up failing — tasks were delayed, and the results were heavily biased toward functional suitability while other quality areas were neglected.
   
-* Project 2 (Enhanced): An Agile project where quality characteristics were formally declared in the project charter before development began. The team mapped every activity (design, coding, testing) to specific ISO/IEC 25010 quality characteristics and used those characteristics as KPIs to track progress sprint by sprint. This project reported test density at 144% of baseline while finding only 32% of the predicted bug count.
+* Project 2 (Enhanced): An Agile project where quality characteristics were formally declared in the project charter before development began. The team mapped every activity (design, coding, testing) to specific ISO/IEC 25010 quality characteristics and used those characteristics as KPIs to track progress sprint by sprint. This project reported a test density at 144% of baseline while finding only 32% of the predicted bug count.
   
 The core steps were:
 * 1. Define software quality goals using the ISO/IEC 25010 model *before* development starts.
@@ -77,14 +77,19 @@ For the tool stack, Jenkins served as the CI server. The automated testing inclu
 Figure 1: ISO/IEC 25010 Quality Model for System/Software Product quality (source: Kato et al., 2022).
 
 ---
+The Spring PetClinic application is selected as the System Under Test. It is selected as it is an open-source Spring Boot application featuring a web UI, REST endpoints, JPA-based persistence, and an existing JUnit test suite covering the service and repository layer. This app is chosen given its realistic multi-layer architecture applicable for the demonstration of the full pyramid of test as well as the pre-existing test suite to act as Functional Suitability coverage baseline. 
+
+Rather than erasing the baseline test, Kato et a;.'s approach of building on existing test capabilities is followed. According to the research paper, the researchers extendend MS test with a custom Report class to be able to report on performance in addition to functional test results. In a like manner, the following test are added to extended PetClinic's baseline JUnit suite which are Cypress E2E for Usability test and scenario coverage, JMeter APIs for performance efficiency and SonarQube static analysis for maintainability and reliability. This expands test coverage over more ISO/IEC 25010 quality characteristic rather than rewriting the existing ones.  
+
+---
 ### 2. Adaptation of the Methodology
 The same experimental approach is followed as in the paper which are before/after comparison. The development process is run firstly without applying quality characteristic mapping, and then introducing the quality-based KPI framework to see what difference it makes.
 
 * **Reused Components:**
   * **The Quality Mapping:** Pipeline stages are still linked to specific quality sub-characteristics.
   * **API Testing:** Just like the paper, **JMeter** is used to track performance data and ensure the system doesn't slow down between builds.
-  * **Jenkins as the CI Server:** **Jenkins** is used to keeps the CI setup consistent with the original research and avoids introducing unnecessary differences.
-  *  **The Test Pyramid Approach:** Like the paper, the tests is structured in a pyramid — unit tests at the base (fast, many), API tests in the middle, and E2E tests at the top (slower, fewer).
+  * **Jenkins as the CI Server:** **Jenkins** is used to keep the CI setup consistent with the original research and avoids introducing unnecessary differences.
+  *  **The Test Pyramid Approach:** Like the paper, the tests are structured in a pyramid — unit tests at the base (fast, many), API tests in the middle, and E2E tests at the top (slower, fewer).
 
 <!-- FIGURE 2: Test Pyramid (from paper, Figure 7) -->
 <img width="504" height="396" alt="Test Pyramid" src="https://github.com/user-attachments/assets/d4e0aac6-d02f-42aa-8ec1-978543ffab3f" />
@@ -92,10 +97,16 @@ The same experimental approach is followed as in the paper which are before/afte
 
 #### Modified Components
 
-- **Development Environment & Unit Tests:** The researcher used **Visual Studio with MS Test**, it is replace with **VS Code as the IDE and JUnit as the unit testing framework**. This approach aligns with the early stages of the paper's pipeline by using a more lightweight and cross-platform toolchain.
-- **E2E Testing:** While the researchers used Ranorex, it was replaced with **Cypress** to handle the UI and scenario testing.
-- **Test Result Management:** The paper built a custom tool backed by SQL Server to store results and generate comparison reports across builds. While a simpler approach is used and relies on Jenkins build history and its native test result plugins to track results over time. While less sophisticated, it still allows for comparing test outcomes between builds and spotting quality degradation.
-- **Deployment (CD):** The paper discusses deployment abstractly to ensure "ease of installation". This is made concrete by setting up a live deployment pipeline to **Digital Ocean**, which specifically tests the "Portability" and "Installability" of the system.
+| Component | Research Paper use tools | Adaption tools | Justification |
+|---|---|---|---|
+| IDE and Unit test framework | Visual Studio and MS test | VS code and JUnit | Cross-platform and aligns with Java|
+| E2E  test tool | Ranorex | Cypress | Open sources, web native and JS based |
+| API/ Performance test | JMeter | JMeter | Retained |
+| CI server | Jenkins | Jenkins | Retained |
+| Static analysis |  | SonarQube | Provides concerte tool for maintainability mapping |
+| Test result storage | Custom C# tool and SQL Server | Jenkins build history and native plugins | Lighter weight |
+| Deployment | Abstract | Digital Ocean | Installability |
+
 
 ### 3. Implementing DevOps Practices
 Here is how this methodology translates into the actual project workflow:
@@ -103,7 +114,7 @@ Here is how this methodology translates into the actual project workflow:
 * **CI/CD Pipeline:** **Jenkins** is configured to automatically trigger builds and tests whenever code is pushed.
 * **Build Stage:** Jenkins pulls the latest code and compiles the project. A successful build is the baseline — if it fails, nothing else runs.
 * **Unit Testing (VS Code + JUnit):** Developers write and run unit tests locally in **VS Code** using the **JUnit** framework to verify Functional Suitability by checking that individual functions behave correctly.
-* **Static Analysis:** Coding standards and common defects are checked to support reliability and maintainability.
+* **Static Analysis (SonarQube):** Coding standards and common defects are checked to support reliability and maintainability.
 * **API Testing (JMeter):** Runs next to verify performance efficiency. JMeter captures response times, throughput, and resource usage to make sure the system performs within acceptable thresholds.
 * **E2E Testing (Cypress):** Runs last as the top of the pyramid. Cypress executes scenario-based tests that simulate real user interactions, covering functional suitability and usability.
 * **Deployment:** Once all tests pass, the pipeline automatically deploys the application to a **Digital Ocean** droplet so the project is live. 
@@ -116,7 +127,7 @@ Following the paper's approach, each pipeline stage is explicitly mapped to the 
 | Pipeline Stage | Quality Characteristic | Sub-characteristics |
 |---|---|---|
 | Coding Rules | Maintainability | Modularity, Modifiability, Testability |
-| Static Analysis | Reliability, Maintainability | Maturity, Analysability |
+| Static Analysis (SonarQube) | Reliability, Maintainability | Maturity, Analysability |
 | Unit Test | Functional Suitability | Completeness, Correctness |
 | API Test (JMeter) | Performance Efficiency | Time Behaviour, Resource Utilization |
 | E2E Test (Cypress) | Functional Suitability, Usability | Appropriateness, Operability, User Error Protection|
@@ -142,11 +153,14 @@ To validate our pipeline and compare our results with the paper's findings, we c
 |---|---|---|
 | Build success/failure rate | Jenkins build logs | Overall pipeline health |
 | Unit test pass/fail rate | JUnit reports published in Jenkins | Functional Suitability |
+| Code coverage | JaCoCo reports published in Jenkins | Functional Suitability |
+| Static analysis issue | SonarQube dashboard | Maintainability, Reliability |
 | API response time and throughput | JMeter test results | Performance Efficiency |
 | E2E test pass/fail rate | Cypress test reports in Jenkins | Functional Suitability, Usability |
 | Bug count per sprint | Manual tracking via issue tracker | Reliability |
 | Test density (tests per feature) | Calculated from test reports | Overall test coverage |
 | Pipeline processing time | Jenkins build duration logs | Performance Efficiency |
+| Deployment success rate | Jenkins deployment stage logs | Portability |
 
 ## Implementation (DevOps pipeline)
 
