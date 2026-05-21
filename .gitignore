@@ -46,3 +46,15 @@ out/
 _site/
 *.css
 !petclinic.css
+
+### Node / Cypress ###
+node_modules/
+cypress/screenshots/
+cypress/videos/
+cypress/reports/
+
+### CI / test artifacts ###
+*.jtl
+jmeter.log
+report/
+results.jtl
