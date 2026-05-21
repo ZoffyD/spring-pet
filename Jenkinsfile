@@ -102,7 +102,8 @@ pipeline {
         // already on this host's Docker daemon, so no registry push is needed.
         stage('Deploy (Docker Compose)') {
             steps {
-                bat 'docker compose -f docker-compose.deploy.yml down --remove-orphans'
+                bat 'docker compose -f docker-compose.deploy.yml down --remove-orphans || exit 0'
+                bat 'docker rm -f petclinic-app 2>nul || exit 0'
                 bat 'docker compose -f docker-compose.deploy.yml up -d'
                 echo 'Waiting 30s for the deployed app on port 8080...'
                 sleep 30
