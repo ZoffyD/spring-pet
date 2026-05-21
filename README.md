@@ -49,7 +49,8 @@
     <td>+6011-1322 7627</td>
   </tr>
 </table>
-## Title 
+
+## Title
 
 ## Introduction
 
@@ -79,7 +80,7 @@ Figure 1: ISO/IEC 25010 Quality Model for System/Software Product quality (sourc
 ---
 The Spring PetClinic application is selected as the System Under Test. It is selected as it is an open-source Spring Boot application featuring a web UI, REST endpoints, JPA-based persistence, and an existing JUnit test suite covering the service and repository layer. This app is chosen given its realistic multi-layer architecture applicable for the demonstration of the full pyramid of test as well as the pre-existing test suite to act as Functional Suitability coverage baseline. 
 
-Rather than erasing the baseline test, Kato et a;.'s approach of building on existing test capabilities is followed. According to the research paper, the researchers extendend MS test with a custom Report class to be able to report on performance in addition to functional test results. In a like manner, the following test are added to extended PetClinic's baseline JUnit suite which are Cypress E2E for Usability test and scenario coverage, JMeter APIs for performance efficiency and SonarQube static analysis for maintainability and reliability. This expands test coverage over more ISO/IEC 25010 quality characteristic rather than rewriting the existing ones.  
+Rather than erasing the baseline test, Kato et a;.'s approach of building on existing test capabilities is followed. According to the research paper, the researchers extendend MS test with a custom Report class to be able to report on performance in addition to functional test results. In a like manner, the following test are added to extended PetClinic's baseline JUnit suite which are Cypress E2E for Usability test and scenario coverage, JMeter APIs for performance efficiency. This expands test coverage over more ISO/IEC 25010 quality characteristic rather than rewriting the existing ones.  
 
 ---
 ### 2. Adaptation of the Methodology
@@ -103,9 +104,8 @@ The same experimental approach is followed as in the paper which are before/afte
 | E2E  test tool | Ranorex | Cypress | Open sources, web native and JS based |
 | API/ Performance test | JMeter | JMeter | Retained |
 | CI server | Jenkins | Jenkins | Retained |
-| Static analysis |  | SonarQube | Provides concerte tool for maintainability mapping |
 | Test result storage | Custom C# tool and SQL Server | Jenkins build history and native plugins | Lighter weight |
-| Deployment | Abstract | Digital Ocean | Installability |
+| Deployment | Abstract | Docker | Containerization produces a self-contained, portable artifact that proves Portability and Installability |
 
 
 ### 3. Implementing DevOps Practices
@@ -114,10 +114,9 @@ Here is how this methodology translates into the actual project workflow:
 * **CI/CD Pipeline:** **Jenkins** is configured to automatically trigger builds and tests whenever code is pushed.
 * **Build Stage:** Jenkins pulls the latest code and compiles the project. A successful build is the baseline — if it fails, nothing else runs.
 * **Unit Testing (VS Code + JUnit):** Developers write and run unit tests locally in **VS Code** using the **JUnit** framework to verify Functional Suitability by checking that individual functions behave correctly.
-* **Static Analysis (SonarQube):** Coding standards and common defects are checked to support reliability and maintainability.
 * **API Testing (JMeter):** Runs next to verify performance efficiency. JMeter captures response times, throughput, and resource usage to make sure the system performs within acceptable thresholds.
 * **E2E Testing (Cypress):** Runs last as the top of the pyramid. Cypress executes scenario-based tests that simulate real user interactions, covering functional suitability and usability.
-* **Deployment:** Once all tests pass, the pipeline automatically deploys the application to a **Digital Ocean** droplet so the project is live. 
+* **Deployment:** Once all tests pass, Jenkins builds a Docker image of the application using the project's Dockerfile. This produces a portable, self-contained deployment artifact that can be installed and run on any Docker-compatible environment without manual configuration. This fulfills the portability and installability quality characteristic under ISO/IEC 25010 without requiring a paid cloud platform.
 
 --- 
 
@@ -127,12 +126,11 @@ Following the paper's approach, each pipeline stage is explicitly mapped to the 
 | Pipeline Stage | Quality Characteristic | Sub-characteristics |
 |---|---|---|
 | Coding Rules | Maintainability | Modularity, Modifiability, Testability |
-| Static Analysis (SonarQube) | Reliability, Maintainability | Maturity, Analysability |
-| Unit Test | Functional Suitability | Completeness, Correctness |
+| Unit Test (JUnit) | Functional Suitability | Completeness, Correctness |
 | API Test (JMeter) | Performance Efficiency | Time Behaviour, Resource Utilization |
 | E2E Test (Cypress) | Functional Suitability, Usability | Appropriateness, Operability, User Error Protection|
 | Pipeline Processing Time | Performance Efficiency | Time Behaviour |
-| Deployment | Digital Ocean | Portability | Installability |
+| Deployment (Docker) | Portability | Installability, Adaptability |
 
 ---
 
@@ -154,13 +152,12 @@ To validate our pipeline and compare our results with the paper's findings, we c
 | Build success/failure rate | Jenkins build logs | Overall pipeline health |
 | Unit test pass/fail rate | JUnit reports published in Jenkins | Functional Suitability |
 | Code coverage | JaCoCo reports published in Jenkins | Functional Suitability |
-| Static analysis issue | SonarQube dashboard | Maintainability, Reliability |
 | API response time and throughput | JMeter test results | Performance Efficiency |
 | E2E test pass/fail rate | Cypress test reports in Jenkins | Functional Suitability, Usability |
 | Bug count per sprint | Manual tracking via issue tracker | Reliability |
 | Test density (tests per feature) | Calculated from test reports | Overall test coverage |
 | Pipeline processing time | Jenkins build duration logs | Performance Efficiency |
-| Deployment success rate | Jenkins deployment stage logs | Portability |
+| Docker image build success rate | Jenkins deployment stage logs | Portability, Installability |
 
 ## Implementation (DevOps pipeline)
 
@@ -174,4 +171,3 @@ To validate our pipeline and compare our results with the paper's findings, we c
 Example: show your implemented tool, metric dashboard, or test results.
 
 ## References (Not less than 20)
-

@@ -166,6 +166,17 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- PostgresIntegrationTests needs a live PostgreSQL (via Docker) and is
+               meant to be run on demand, not in the normal unit-test build. -->
+          <excludes>
+            <exclude>**/PostgresIntegrationTests.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <executions>
           <execution>

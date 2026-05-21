@@ -1,0 +1,15 @@
+# Keep the Docker build context small and reproducible
+node_modules
+target
+.gradle
+.git
+.github
+cypress
+cypress.config.js
+package.json
+package-lock.json
+*.jtl
+report
+jmeter.log
+k8s
+*.md
