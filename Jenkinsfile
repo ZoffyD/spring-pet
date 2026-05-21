@@ -2,57 +2,86 @@ pipeline {
     agent any
     stages {
         stage('Source Code Management') {
-            steps { checkout scm }
+            steps { 
+                checkout scm 
+            }
         }
+        
         stage('Build & Compile') {
             steps {
-                dir('spring-petclinic-main') {
-                    sh 'mvn clean package -DskipTests'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn clean package -DskipTests'
+                    } else {
+                        bat 'mvn clean package -DskipTests'
+                    }
                 }
             }
         }
-        stage('Run App') {
-            steps {
-                sh 'java -Dserver.port=8081 -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration -jar spring-petclinic-main/target/*.jar &'
-                echo 'Waiting 50s for server on Port 8081...'
-                sleep 50
-            }
-        }
+        
         stage('E2E Testing (Cypress)') {
             steps {
-                // Member 2 Fix: Force permissions on the node_modules so Jenkins can execute Cypress
-                sh 'chmod -R 755 node_modules/.bin/cypress'
-                sh 'npm install'
-                sh 'npx cypress run --config baseUrl=http://localhost:8081,failOnStatusCode=false || true'
+                script {
+                    if (isUnix()) {
+                        sh 'chmod -R 755 node_modules/.bin/cypress'
+                        sh 'npm install'
+                        sh 'npx cypress run --config baseUrl=http://localhost:8081,failOnStatusCode=false || true'
+                    } else {
+                        bat 'npm install'
+                        bat 'npx cypress run --config baseUrl=http://localhost:8081,failOnStatusCode=false'
+                    }
+                }
             }
         }
+        
         stage('Performance Testing (JMeter)') {
             steps {
-                sh '''
-                    # Member 2 Fix: Pointing to the specific subfolder and standardizing result name
-                    for file in spring-petclinic-main/src/test/jmeter/*.jmx; do
-                        jmeter -n -t "$file" -l "target/jmeter-results.jtl"
-                    done
-                '''
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            for file in src/test/jmeter/*.jmx; do
+                                jmeter -n -t "$file" -l "target/jmeter-results.jtl"
+                            done
+                        '''
+                    } else {
+                        bat '''
+                            IF NOT EXIST target MD target
+                            for %%f in (src\\test\\jmeter\\*.jmx) do (
+                                jmeter -n -t "%%f" -l "target\\jmeter-results.jtl"
+                            )
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Deploy (Local Docker Compose)') {
+            steps {
+                echo 'Deploying integrated services matrix to local Docker Engine...'
+                script {
+                    if (isUnix()) {
+                        sh 'docker-compose down || true'
+                        sh 'docker-compose up -d --build'
+                    } else {
+                        bat 'docker-compose down || rem'
+                        bat 'docker-compose up -d --build'
+                    }
+                }
+                echo 'Application is live and containerized at http://localhost:8081'
             }
         }
     }
+    
     post {
         always {
-            sh "pkill -f 'spring-petclinic' || true"
-            
-            // Capture Unit Tests
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-            
-            // Member 2 Fix: Point to the standardized jtl file we created in the loop above
             perfReport errorFailedThreshold: 100, errorUnstableThreshold: 80, sourceDataFiles: 'target/jmeter-results.jtl'
             
-            // Member 2 Fix: Only try to publish HTML if the folder actually exists
             script {
                 if (fileExists('cypress/reports')) {
                     publishHTML(target: [reportDir: 'cypress/reports', reportFiles: 'index.html', reportName: 'Cypress E2E Report'])
                 } else {
-                    echo "Skipping HTML report: cypress/reports folder not found."
+                    echo "Skipping HTML report generation: cypress/reports folder missing."
                 }
             }
         }

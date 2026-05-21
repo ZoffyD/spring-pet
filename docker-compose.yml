@@ -1,8 +1,23 @@
+version: '3.8'
+
 services:
-  mysql:
-    image: mysql:9.6
+  # The Core Spring Boot Application Engine
+  petclinic-app:
+    build:
+      context: .  # 👈 Changed from ./spring-petclinic-main to look at root
+      dockerfile: Dockerfile
     ports:
-      - "3306:3306"
+      - "8081:8081"
+    depends_on:
+      - mysql
+      - postgres
+    restart: always
+
+  # Relational Database Service: MySQL
+  mysql:
+    image: mysql:9.0
+    ports:
+      - "3307:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
@@ -11,8 +26,10 @@ services:
       - MYSQL_DATABASE=petclinic
     volumes:
       - "./conf.d:/etc/mysql/conf.d:ro"
+
+  # Relational Database Service: PostgreSQL
   postgres:
-    image: postgres:18.3
+    image: postgres:15
     ports:
       - "5432:5432"
     environment:
