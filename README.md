@@ -201,7 +201,46 @@ Post-Build Actions: Configured automated parsing hooks via Jenkins (junit and pe
 
 ## Results & Analysis
 
-## Comparison with paper
+The implementation of the DevOps CI/CD pipeline across two distinct experimental phases yielded substantial empirical data regarding the impact of quality-driven Key Performance Indicators (KPIs). By systematically gathering metrics through Jenkins, JaCoCo, SonarQube, Cypress, and JMeter, the following observations were made:
+
+### 1. Test Density and The Testing Pyramid
+In Phase 1, the pipeline relied exclusively on a baseline of 57 JUnit unit tests. While these executed quickly, they only provided narrow coverage of the backend service layers. In Phase 2, explicitly targeting **Usability** and **Functional Suitability** (per the ISO/IEC 25010 model) drove the team to expand the Test Pyramid by adding 92 Cypress End-to-End (E2E) tests. This resulted in a total test density of 149 tests—a massive **161% increase**. This shift transformed the pipeline from a simple integration check into a comprehensive behavioral validation system.
+
+### 2. Defect Detection and Automated Quality Gates
+The most critical finding of this project is the stark divergence in build status and defect visibility between the two phases:
+* **The Phase 1 False Positive:** The baseline pipeline achieved a 100% unit test pass rate and a green `SUCCESS` build status. However, this provided a false sense of security; the unit tests successfully validated the Java backend but completely ignored the HTML/JS frontend interactions.
+* **The Phase 2 Quality Gate:** The introduction of Cypress E2E testing immediately exposed 4 critical defects in the application's form submission logic (specifically validation failures in the `Pets` and `Visits` modules, such as accepting invalid date formats). 
+
+Following a developer patching cycle, the defect count was halved, resulting in a **97.83% E2E pass rate** (90 out of 92 tests passing). Crucially, the Jenkins CI/CD pipeline correctly maintained a `FAILED` build status. This demonstrates a strict, highly reliable DevOps quality gate: the automated pipeline physically prevented the deployment of defective code to the production environment, proving that DevOps practices actively intercept bugs before they reach end-users.
+
+### 3. Performance Efficiency Under Sustained Load
+API response times, measured via JMeter, showed an increase from an average of 4,993 ms in Phase 1 to 8,037 ms in Phase 2. While a surface-level analysis might interpret this as performance degradation, the data actually reflects a vastly more rigorous and realistic stress-testing environment. 
+* Phase 1 simulated basic `GET` requests across 13 endpoints. 
+* Phase 2 expanded the scope to 16 endpoints and introduced heavy database write operations (e.g., `POST new owner`), mimicking real-world concurrent usage. 
+
+Despite handling **80,000 simulated requests** under this heavier data-write load, the system maintained a **0.00% error rate**. This confirms the system's robust Reliability and Performance Efficiency, proving the architecture can handle sustained stress without service interruption.
+
+### 4. Static Code Analysis and Technical Debt Reality
+An unexpected but vital finding was the stagnation of static metrics. Across both phases, Security Issues remained at 10 (Grade D), Maintainability Issues remained at 17 (Grade A), and JaCoCo Test Coverage remained static at 91.90%. 
+* **The limit of Dynamic Testing:** This highlights a fundamental reality of DevOps engineering. Expanding external dynamic black-box testing (Cypress and JMeter) does not magically refactor bad internal source code. 
+* **Tool Blindspots:** Furthermore, JaCoCo exclusively monitors Java bytecode execution during JUnit testing and is fundamentally blind to external JavaScript-based browser testing. Therefore, while our *actual* functional coverage expanded massively, our internal structural metrics remained static. This proves that achieving holistic software quality requires a dedicated balance of both code refactoring (resolving technical debt) and pipeline testing.
+
+---
+
+## Comparison with Kato et al. (2022)
+
+Our findings strongly align with the core thesis presented by Kato et al. (2022), demonstrating that explicitly managing software development through defined quality characteristics natively improves software reliability. 
+
+### Key Similarities
+* **Intentional Metric Scaling:** The original Kato et al. experiment observed a test density increase to 144% of their baseline when implementing quality-driven KPIs. Our adapted methodology successfully mirrored and exceeded this success, achieving a **161% increase** in test density by integrating UI and Performance testing layers based explicitly on ISO/IEC 25010 goals.
+* **Reduction of Escaped Defects:** The referenced paper noted that focusing on specific quality characteristics reduced the number of unpredicted bugs escaping into production by 68%. Similarly, our Phase 1 baseline completely missed 4 critical defects that were immediately caught in Phase 2 once *Usability* and *Appropriateness* were formally mapped to our testing stages.
+
+### Divergence and Methodological Adaptations
+* **Automated vs. Manual Enforcement:** While the research paper focused heavily on Agile project management—relying on manual tracking of quality characteristics sprint-by-sprint—our implementation strictly automated these gates within a Jenkins CI/CD pipeline. Our pipeline acts as an uncompromising enforcer, physically blocking deployments (Build `FAILED`) when E2E metrics drop below 100%, whereas the original study relied on human managerial oversight.
+* **Separation of Diagnostic Tools:** The original study utilized a custom C# reporting tool to aggregate functional and performance tests natively into a single MS Test pane. To adapt this to modern, open-source DevOps environments, our metrics were deliberately siloed (JaCoCo for Unit, Cypress for E2E, JMeter for Performance, SonarQube for SAST). This distributed toolchain provided deeper, specialized insights but required manual data aggregation to form a complete quality picture.
+
+---
+
 
 ## Conclusion
 
