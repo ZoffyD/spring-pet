@@ -23,8 +23,8 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
+                        sh 'npm install' // 👈 Moved this to the top!
                         sh 'chmod -R 755 node_modules/.bin/cypress'
-                        sh 'npm install'
                         sh 'npx cypress run --config baseUrl=http://localhost:8081,failOnStatusCode=false || true'
                     } else {
                         bat 'npm install'
