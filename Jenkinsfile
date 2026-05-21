@@ -22,12 +22,12 @@ pipeline {
         stage('E2E Testing (Cypress)') {
             steps {
                 script {
-                    // 1. Kill anything left on 8081 from a previous build, then start Spring Boot in the background
+                    // 1. Free port 8081, then launch the app DETACHED, logging to app.log, with a cookie so Jenkins won't reap it
                     bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
-                    bat 'start /B java -jar target/spring-petclinic-4.0.0-SNAPSHOT.jar --server.port=8081'
+                    bat 'start "petclinic" /B cmd /c "set JENKINS_NODE_COOKIE=dontKillMe & java -jar target\\spring-petclinic-4.0.0-SNAPSHOT.jar --server.port=8081 > app.log 2>&1"'
                     
-                    // 2. Wait until the app actually responds on 8081 (Jenkins 'bat' cannot use the 'timeout' command)
-                    bat 'powershell -NoProfile -Command "for ($i=0; $i -lt 60; $i++) { try { Invoke-WebRequest -UseBasicParsing http://localhost:8081/actuator/health -TimeoutSec 3 | Out-Null; Write-Host \'App is up on 8081\'; exit 0 } catch { Start-Sleep -Seconds 2 } }; Write-Host \'App did not start on 8081 within 120s\'; exit 1"'
+                    // 2. Wait until the app responds on 8081; if it never does, PRINT app.log so we can see the real error
+                    bat 'powershell -NoProfile -Command "for ($i=0; $i -lt 60; $i++) { try { Invoke-WebRequest -UseBasicParsing http://localhost:8081/ -TimeoutSec 3 | Out-Null; Write-Host \'App is up on 8081\'; exit 0 } catch { Start-Sleep -Seconds 2 } }; Write-Host \'===== App did not start in 120s -- app.log below =====\'; if (Test-Path app.log) { Get-Content app.log } else { Write-Host \'(app.log missing: java never launched -- likely not on PATH)\' }; exit 1"'
                     
                     // 3. Install dependencies and run Cypress
                     bat 'npm install'
