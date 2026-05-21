@@ -181,6 +181,24 @@ The pipeline runs sequentially through five core stages to ensure software stabi
 [SCM Checkout] ──> [Build & Compile] ──> [Run App (Port 8081)] ──> [Cypress E2E] ──> [JMeter Performance]
 ```
 
+i. Source Code Management (SCM): Automatically pulls the latest commit from the official groupproject-habibi main branch.
+
+ii. Build & Compile: Executes mvn clean package -DskipTests to compile the Java Spring Boot source code and bundle dependencies into an executable JAR file.
+
+iii. Run App (Environment Isolation): Dynamically boots the Spring Boot application using backend flags.
+
+iv. End-to-End Testing (Cypress): Runs 92 distinct test cases across 8 automated specifications to validate critical user flows (e.g., Owner management, Pet registration, Security checks).
+
+v. Performance Testing (JMeter): Executes high-concurrency stress test plans (petclinic_improved.jmx and petclinic_test_plan.jmx) via CLI to gather latency and error-rate metrics.
+
+## 3. Pipeline Execution Status
+
+CI Pipeline Script: Standardized onto a single, strictly typed declarative Jenkinsfile.
+
+Post-Build Actions: Configured automated parsing hooks via Jenkins (junit and perfReport) to convert generated .jtl data logs into visual performance trend graphs on the dashboard.
+
+
+
 ## Results & Analysis
 
 ## Comparison with paper
