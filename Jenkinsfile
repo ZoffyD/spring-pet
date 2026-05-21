@@ -39,15 +39,26 @@ pipeline {
         // existing Cypress specs.
         stage('Start App for Testing') {
             steps {
+                // Copy the built jar to a fixed name, then launch it in the
+                // background. JENKINS_NODE_COOKIE=dontKillMe stops Jenkins from
+                // reaping the process when this shell exits; output -> target\app-test.log.
                 bat '''
-                    for %%f in (target\\*.jar) do (
-                        start /B java -Dserver.port=%TEST_PORT% ^
-                            -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration ^
-                            -jar "%%f"
-                    )
+                    for %%f in (target\\*.jar) do copy /Y "%%f" target\\app-test.jar >nul
+                    set JENKINS_NODE_COOKIE=dontKillMe
+                    start "" /B cmd /c "java -Dserver.port=%TEST_PORT% -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration -jar target\\app-test.jar > target\\app-test.log 2>&1"
                 '''
-                echo 'Waiting 50s for the app to start...'
-                sleep 50
+                // Poll the port until the app answers (up to ~2 min) instead of a
+                // blind sleep; fail with the app log if it never comes up.
+                bat '''
+                    for /L %%i in (1,1,40) do (
+                        curl -s -o nul http://localhost:%TEST_PORT%/ && exit /b 0
+                        echo Waiting for app on port %TEST_PORT%... (%%i/40)
+                        ping -n 4 127.0.0.1 >nul
+                    )
+                    echo ERROR: app did not start on port %TEST_PORT%. Last 80 log lines:
+                    powershell -Command "if (Test-Path 'target\\app-test.log') { Get-Content 'target\\app-test.log' -Tail 80 }"
+                    exit /b 1
+                '''
             }
         }
 
