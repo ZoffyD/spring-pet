@@ -168,10 +168,12 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <!-- PostgresIntegrationTests needs a live PostgreSQL (via Docker) and is
-               meant to be run on demand, not in the normal unit-test build. -->
+          <!-- Postgres/MySQL integration tests need a live DB container (via Docker)
+               and are meant to be run on demand, not in the normal unit-test build.
+               The default suite runs on the in-memory H2 database, no Docker needed. -->
           <excludes>
             <exclude>**/PostgresIntegrationTests.java</exclude>
+            <exclude>**/MySqlIntegrationTests.java</exclude>
           </excludes>
         </configuration>
       </plugin>
