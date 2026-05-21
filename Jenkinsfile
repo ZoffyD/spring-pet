@@ -22,18 +22,19 @@ pipeline {
         stage('E2E Testing (Cypress)') {
             steps {
                 script {
-                    // 1. Start Spring Boot in the background (Windows style)
+                    // 1. Kill anything left on 8081 from a previous build, then start Spring Boot in the background
+                    bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
                     bat 'start /B java -jar target/spring-petclinic-4.0.0-SNAPSHOT.jar --server.port=8081'
                     
-                    // 2. Give the application a few seconds to fully boot up before Cypress runs
-                    bat 'timeout /t 20 /nobreak'
+                    // 2. Wait until the app actually responds on 8081 (Jenkins 'bat' cannot use the 'timeout' command)
+                    bat 'powershell -NoProfile -Command "for ($i=0; $i -lt 60; $i++) { try { Invoke-WebRequest -UseBasicParsing http://localhost:8081/actuator/health -TimeoutSec 3 | Out-Null; Write-Host \'App is up on 8081\'; exit 0 } catch { Start-Sleep -Seconds 2 } }; Write-Host \'App did not start on 8081 within 120s\'; exit 1"'
                     
                     // 3. Install dependencies and run Cypress
                     bat 'npm install'
                     bat 'npx cypress run --config baseUrl=http://localhost:8081'
                     
-                    // 4. Clean up: Kill the Java process running on port 8081 after tests complete
-                    bat 'for /f "tokens=5" %a in (\'netstat -aon ^| findstr 8081\') do taskkill /F /PID %a'
+                    // 4. Clean up: stop the Java process running on port 8081 after tests complete
+                    bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
                 }
             }
         }
