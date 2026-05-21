@@ -22,14 +22,18 @@ pipeline {
         stage('E2E Testing (Cypress)') {
             steps {
                 script {
-                    if (isUnix()) {
-                        sh 'npm install' // 👈 Moved this to the top!
-                        sh 'chmod -R 755 node_modules/.bin/cypress'
-                        sh 'npx cypress run --config baseUrl=http://localhost:8081,failOnStatusCode=false || true'
-                    } else {
-                        bat 'npm install'
-                        bat 'npx cypress run --config baseUrl=http://localhost:8081,failOnStatusCode=false'
-                    }
+                    // 1. Start Spring Boot in the background (Windows style)
+                    bat 'start /B java -jar target/spring-petclinic-4.0.0-SNAPSHOT.jar --server.port=8081'
+                    
+                    // 2. Give the application a few seconds to fully boot up before Cypress runs
+                    bat 'timeout /t 20 /nobreak'
+                    
+                    // 3. Install dependencies and run Cypress
+                    bat 'npm install'
+                    bat 'npx cypress run --config baseUrl=http://localhost:8081'
+                    
+                    // 4. Clean up: Kill the Java process running on port 8081 after tests complete
+                    bat 'for /f "tokens=5" %a in (\'netstat -aon ^| findstr 8081\') do taskkill /F /PID %a'
                 }
             }
         }
