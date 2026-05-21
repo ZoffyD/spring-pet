@@ -44,6 +44,7 @@ pipeline {
                 // reaping the process when this shell exits; output -> target\app-test.log.
                 bat '''
                     for %%f in (target\\*.jar) do copy /Y "%%f" target\\app-test.jar >nul
+                    set "PATH=%JAVA_HOME%\\bin;%PATH%"
                     set JENKINS_NODE_COOKIE=dontKillMe
                     start "" /B cmd /c "java -Dserver.port=%TEST_PORT% -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration -jar target\\app-test.jar > target\\app-test.log 2>&1"
                 '''
