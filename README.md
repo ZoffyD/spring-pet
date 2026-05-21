@@ -160,6 +160,26 @@ To validate our pipeline and compare our results with the paper's findings, we c
 | Docker image build success rate | Jenkins deployment stage logs | Portability, Installability |
 
 ## Implementation (DevOps pipeline)
+## 1. Automated Pipeline Overview
+This repository utilizes a comprehensive Continuous Integration and Continuous Testing (CI/CT) workflow managed via **Jenkins**. The pipeline enforces software quality gates at every phase of the development lifecycle, ensuring that codebase modifications are verified before deployment.
+
+### 🏢 Monorepo System Architecture
+To facilitate unified pipeline execution, an **Integrated Monorepo** pattern was established at the repository root:
+* `spring-petclinic-main/` - Core Java Spring Boot application (System Under Test).
+* `cypress/` - Automated End-to-End (E2E) UI test suites.
+* `spring-petclinic-main/src/test/jmeter/` - JMeter performance testing test plans (`.jmx`).
+* `Jenkinsfile` - Main declarative configuration pipeline script.
+* `docker-compose.yml` - Environment orchestrator.
+
+---
+
+## 2. Pipeline Stages & Quality Gates
+
+The pipeline runs sequentially through five core stages to ensure software stability:
+
+```text
+[SCM Checkout] ──> [Build & Compile] ──> [Run App (Port 8081)] ──> [Cypress E2E] ──> [JMeter Performance]
+```
 
 ## Results & Analysis
 
