@@ -42,6 +42,8 @@ pipeline {
                     // 4. Install Node dependencies and execute Cypress End-to-End tests
                     echo "Running Cypress UI automation suite..."
                     bat 'npm install'
+                    // Clear JUnit results from any previous build so old XMLs aren't re-counted (workspace is reused)
+                    bat 'if exist cypress\\results rmdir /s /q cypress\\results'
                     bat 'npx cypress run --config baseUrl=http://localhost:8081'
                 }
             }
@@ -111,8 +113,8 @@ pipeline {
 
     post {
         always {
-            // Records unit test reports and charts framework execution results
-            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+            // Records test reports in the Jenkins UI: Cypress E2E results (JUnit XML) plus any Maven surefire reports
+            junit allowEmptyResults: true, testResults: 'cypress/results/*.xml, **/target/surefire-reports/*.xml'
         }
     }
 }
