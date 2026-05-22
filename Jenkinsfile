@@ -26,8 +26,9 @@ pipeline {
         stage('E2E Testing (Cypress)') {
             steps {
                 script {
-                    // 1. Pre-kill any stale processes hanging on port 8081 from previous failed builds
-                    echo "Clearing port 8081..."
+                    // 1. Tear down any container left from a previous deploy (ignored if Docker is off), then free port 8081
+                    echo "Clearing previous deployment (if any) and port 8081..."
+                    bat(script: 'docker-compose down', returnStatus: true)
                     bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
 
                     // 2. Start the app in the background using JDK 21 from JAVA_HOME (the bare 'java' on PATH is Java 11 and cannot run this jar)
@@ -57,15 +58,53 @@ pipeline {
 
         stage('Performance Testing (JMeter)') {
             steps {
-                echo "Running Performance Metrics via JMeter..."
-                // Add your JMeter execution commands here if needed
+                script {
+                    // 1. Free port 8081 and start a fresh app instance for the load test (E2E killed the previous one)
+                    echo "Clearing port 8081 and launching the app for the performance run..."
+                    bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
+                    bat 'start "" /B "%JAVA_HOME%\\bin\\java" -jar "%WORKSPACE%\\target\\spring-petclinic-4.0.0-SNAPSHOT.jar" --server.port=8081'
+
+                    // 2. Wait until the app is healthy on 8081
+                    echo "Waiting for server to become healthy on port 8081..."
+                    bat 'powershell -NoProfile -Command "for ($i=0; $i -lt 60; $i++) { try { Invoke-WebRequest -UseBasicParsing http://localhost:8081/actuator/health -TimeoutSec 3 | Out-Null; Write-Host \'App is up on 8081\'; exit 0 } catch { Start-Sleep -Seconds 2 } }; Write-Host \'App did not start on 8081 within 120s\'; exit 1"'
+
+                    // 3. Run both JMeter plans (they default to localhost:8081) and save JTL results. 'call' is required so the .bat returns and runs the next line.
+                    echo "Running JMeter performance plans against http://localhost:8081 ..."
+                    bat '''
+                        if not exist "target\\jmeter" mkdir "target\\jmeter"
+                        call jmeter -n -t "src\\test\\jmeter\\petclinic_test_plan.jmx" -l "target\\jmeter\\petclinic_test_plan.jtl"
+                        call jmeter -n -t "src\\test\\jmeter\\petclinic_improved.jmx" -l "target\\jmeter\\petclinic_improved.jtl"
+                    '''
+                }
+            }
+            post {
+                always {
+                    script {
+                        echo "Stopping the performance-test app on 8081..."
+                        bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
+                    }
+                    archiveArtifacts artifacts: 'target/jmeter/*.jtl', allowEmptyArchive: true
+                }
             }
         }
 
         stage('Deploy (Local Docker Compose)') {
             steps {
-                echo "Deploying application stack..."
-                // Add your final deployment commands here if needed
+                script {
+                    // 1. Free host port 8081 so the container can bind it
+                    echo "Freeing port 8081 for the Docker container..."
+                    bat 'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; exit 0"'
+
+                    // 2. Build the image and run ONLY the app container. App uses in-memory H2, so --no-deps skips the unused mysql/postgres. Requires Docker Desktop running.
+                    echo "Deploying via Docker Compose (Docker Desktop must be running)..."
+                    bat(script: 'docker-compose down', returnStatus: true)
+                    bat 'docker-compose up -d --build --no-deps petclinic-app'
+
+                    // 3. Verify the deployed container actually serves on 8081 (allows time for the image build + app boot)
+                    echo "Verifying the deployed container responds on 8081..."
+                    bat 'powershell -NoProfile -Command "for ($i=0; $i -lt 90; $i++) { try { Invoke-WebRequest -UseBasicParsing http://localhost:8081/actuator/health -TimeoutSec 3 | Out-Null; Write-Host \'Deployed app is up on 8081\'; exit 0 } catch { Start-Sleep -Seconds 2 } }; Write-Host \'Deployed container did not become healthy in 180s\'; exit 1"'
+                }
+                echo "Deployed: the app is now running in Docker at http://localhost:8081"
             }
         }
     }
